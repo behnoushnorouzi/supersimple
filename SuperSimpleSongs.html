@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Super Simple Songs 🎵 Safe Player</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #FFD700;
+            --yellow-dark: #F5A800;
+            --red: #FF5A5A;
+            --orange: #FF9F43;
+            --green: #4CAF7D;
+            --blue: #4D96FF;
+            --purple: #B57BFF;
+            --pink: #FF6B9D;
+            --teal: #26C6DA;
+            --bg: #FFFDF5;
+            --card-bg: #FFFFFF;
+            --text: #1A1A2E;
+            --text-muted: #9999AA;
+            --border: #F0EDE6;
+            --shadow: 0 4px 24px rgba(0,0,0,0.07);
+            --shadow-hover: 0 12px 40px rgba(0,0,0,0.13);
+            --radius: 20px;
+            --max-width: 1200px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+        /* HEADER */
+        .site-header { background: var(--yellow); border-bottom: 3px solid var(--yellow-dark); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(245,168,0,0.25); }
+        .header-inner { max-width: var(--max-width); margin: 0 auto; padding: 18px 32px 14px; }
+        .header-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+        .brand { display: flex; align-items: center; gap: 14px; }
+        .brand-icon { width: 52px; height: 52px; background: rgba(255,255,255,0.45); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; border: 2px solid rgba(255,255,255,0.6); flex-shrink: 0; }
+        .brand-name { font-family: 'Baloo 2', cursive; font-size: 24px; font-weight: 800; color: #7A3800; line-height: 1; }
+        .brand-tagline { font-size: 12px; font-weight: 700; color: #9A5500; margin-top: 2px; }
+
+        .search-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .search-wrap { flex: 1; min-width: 200px; position: relative; }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; }
+        .search-input { width: 100%; padding: 11px 16px 11px 40px; border-radius: 14px; border: 2px solid rgba(255,255,255,0.7); font-size: 15px; font-family: 'Nunito', sans-serif; font-weight: 700; background: #fff; color: var(--text); outline: none; transition: border-color 0.2s; }
+        
+        .search-btn { padding: 11px 24px; border-radius: 14px; border: none; font-size: 14px; font-family: 'Nunito', sans-serif; font-weight: 900; background: var(--red); color: #fff; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(255,0,0,0.3); transition: transform 0.15s; }
+        .search-btn:active { transform: scale(0.96); }
+
+        /* PAGE CONTENT */
+        .page { max-width: var(--max-width); margin: 0 auto; padding: 28px 32px 48px; }
+        .page-title { font-family: 'Baloo 2', cursive; font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 20px; }
+
+        /* SONG GRID */
+        .song-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .song-card { border-radius: var(--radius); overflow: hidden; cursor: pointer; background: var(--card-bg); box-shadow: var(--shadow); border: 2px solid var(--border); transition: transform 0.2s ease; }
+        .song-card:hover { transform: translateY(-5px); }
+        .card-thumb-wrap { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; }
+        .card-thumb { width: 100%; height: 100%; object-fit: cover; }
+        .card-body { padding: 14px; }
+        .card-title { font-size: 14px; font-weight: 800; line-height: 1.4; color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* MODAL */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 300; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.open { display: flex; }
+        .modal { background: #000; border-radius: 28px; width: 100%; max-width: 900px; overflow: hidden; position: relative; }
+        .modal-close { position: absolute; top: 15px; right: 15px; z-index: 10; width: 40px; height: 40px; border-radius: 50%; background: #fff; border: none; font-size: 20px; font-weight: bold; cursor: pointer; }
+        .video-container { width: 100%; aspect-ratio: 16/9; }
+        .video-container iframe { width: 100%; height: 100%; border: none; }
+
+        /* LOADING */
+        .loading-state { text-align: center; padding: 50px; grid-column: 1/-1; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--yellow-dark); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media (max-width: 600px) {
+            .header-inner { padding: 12px 16px; }
+            .song-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .brand-name { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="site-header">
+    <div class="header-inner">
+        <div class="header-top">
+            <div class="brand">
+                <div class="brand-icon">🌈</div>
+                <div>
+                    <div class="brand-name">Super Simple Songs</div>
+                    <div class="brand-tagline">Safe Video Player for Kids</div>
+                </div>
+            </div>
+        </div>
+        <div class="search-bar">
+            <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input class="search-input" id="searchInput" placeholder="Search for a song (e.g. Baby Shark)..." />
+            </div>
+            <button class="search-btn" id="searchBtn">Find Song</button>
+        </div>
+    </div>
+</header>
+
+<div class="page">
+    <div class="page-title" id="pageTitle">🎵 Popular Songs</div>
+    <div class="song-grid" id="songGrid"></div>
+    <div style="text-align:center; margin-top: 30px;">
+        <button id="loadMoreBtn" style="display:none; padding:12px 24px; border-radius:14px; border:2px solid var(--yellow-dark); background:white; font-weight:800; cursor:pointer;">Show More</button>
+    </div>
+</div>
+
+<!-- Modal Player -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <div class="video-container">
+            <iframe id="videoFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURATION ---
+    const API_KEY = "AIzaSyBNEhmX7ztsjMFMrL4V6RKub6no8P8X2kM"; // REPLACE WITH YOUR KEY
+    const CHANNEL_ID = "UCLsooMJoIpl_7ux2jvdPB-Q"; // Super Simple Songs ID
+    
+    let nextPageToken = "";
+    let currentQuery = "";
+
+    // --- FETCH VIDEOS ---
+    async function fetchVideos(query = "", isLoadMore = false) {
+        const grid = document.getElementById("songGrid");
+        const loadMoreBtn = document.getElementById("loadMoreBtn");
+        
+        if (!isLoadMore) {
+            grid.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Looking for songs...</p></div>';
+            nextPageToken = "";
+        }
+
+        try {
+            // Logic: Always search within the specific channel
+            let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=12&type=video&key=${API_KEY}&pageToken=${nextPageToken}`;
+            
+            if (query) {
+                url += `&q=${encodeURIComponent(query)}`;
+            } else {
+                url += `&order=date`; // If no search, show newest
+            }
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (!isLoadMore) grid.innerHTML = "";
+            
+            if (data.items && data.items.length > 0) {
+                data.items.forEach(item => {
+                    const videoId = item.id.videoId;
+                    const title = item.snippet.title;
+                    const thumb = item.snippet.thumbnails.high.url;
+
+                    const card = document.createElement("div");
+                    card.className = "song-card";
+                    card.innerHTML = `
+                        <div class="card-thumb-wrap">
+                            <img class="card-thumb" src="${thumb}" alt="song">
+                        </div>
+                        <div class="card-body">
+                            <div class="card-title">${title}</div>
+                        </div>
+                    `;
+                    card.onclick = () => openVideo(videoId);
+                    grid.appendChild(card);
+                });
+
+                nextPageToken = data.nextPageToken || "";
+                loadMoreBtn.style.display = nextPageToken ? "inline-block" : "none";
+            } else {
+                grid.innerHTML = '<div class="loading-state"><p>No songs found. Try another word!</p></div>';
+            }
+        } catch (error) {
+            grid.innerHTML = '<div class="loading-state"><p>Error loading songs. Please check your API key.</p></div>';
+        }
+    }
+
+    // --- SAFE PLAYER LOGIC ---
+    function openVideo(id) {
+        const overlay = document.getElementById("modalOverlay");
+        const frame = document.getElementById("videoFrame");
+        
+        // rel=0: Only show related videos FROM THE SAME CHANNEL
+        // modestbranding=1: Hide YouTube logo
+        // iv_load_policy=3: Hide annotations
+        frame.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3`;
+        overlay.classList.add("open");
+        document.body.style.overflow = "hidden"; // Prevent scrolling
+    }
+
+    function closeModal() {
+        const overlay = document.getElementById("modalOverlay");
+        const frame = document.getElementById("videoFrame");
+        frame.src = "";
+        overlay.classList.remove("open");
+        document.body.style.overflow = "auto";
+    }
+
+    // --- EVENTS ---
+    document.getElementById("searchBtn").onclick = () => {
+        const input = document.getElementById("searchInput").value.trim();
+        currentQuery = input;
+        document.getElementById("pageTitle").textContent = input ? `Results for "${input}"` : "Popular Songs";
+        fetchVideos(input);
+    };
+
+    document.getElementById("searchInput").onkeydown = (e) => {
+        if (e.key === "Enter") document.getElementById("searchBtn").click();
+    };
+
+    document.getElementById("loadMoreBtn").onclick = () => {
+        fetchVideos(currentQuery, true);
+    };
+
+    // Close modal on click outside
+    document.getElementById("modalOverlay").onclick = (e) => {
+        if (e.target.id === "modalOverlay") closeModal();
+    };
+
+    // --- INITIAL LOAD ---
+    fetchVideos();
+</script>
+
+</body>
+</html>
