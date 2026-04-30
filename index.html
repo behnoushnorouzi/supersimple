@@ -1,12 +1,339 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Super Simple Music</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Super Simple Songs 🎵</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Nunito', sans-serif; background: #FFF8F0; min-height: 100vh; overflow-x: hidden; }
+
+  /* HEADER */
+  .header { background: #FFD700; padding: 20px 20px 16px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+  .header-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .logo-circle { width: 56px; height: 56px; background: rgba(255,255,255,0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; flex-shrink: 0; border: 3px solid rgba(255,255,255,0.6); }
+  .header-title { font-size: 26px; font-weight: 900; color: #CC4400; letter-spacing: 1.5px; text-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  .header-sub { font-size: 13px; color: #996600; font-weight: 700; }
+
+  /* SEARCH */
+  .search-row { display: flex; gap: 8px; flex-wrap: wrap; background: rgba(255,255,255,0.4); border-radius: 14px; padding: 10px 12px; }
+  .search-input { flex: 1; min-width: 200px; padding: 12px 16px; border-radius: 12px; border: none; font-size: 17px; font-family: 'Nunito', sans-serif; font-weight: 700; background: #fff; color: #333; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .filter-select { padding: 12px 14px; border-radius: 12px; border: none; font-size: 15px; font-family: 'Nunito', sans-serif; font-weight: 700; background: #fff; color: #555; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .search-btn { padding: 12px 20px; border-radius: 12px; border: none; font-size: 15px; font-family: 'Nunito', sans-serif; font-weight: 900; background: #FF6B6B; color: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(255,107,107,0.4); transition: transform 0.1s; white-space: nowrap; }
+  .search-btn:active { transform: scale(0.95); }
+
+  /* TABS */
+  .tabs { display: flex; gap: 10px; padding: 16px 16px 8px; }
+  .tab { padding: 10px 20px; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; border: 3px solid transparent; transition: all 0.2s; }
+  .tab.active { background: #FFD700; color: #CC4400; border-color: #CC4400; }
+  .tab.inactive { background: #fff; color: #aaa; border-color: #eee; }
+
+  /* MAIN */
+  .main { padding: 8px 16px 16px; }
+  .results-count { font-size: 15px; color: #aaa; font-weight: 700; margin-bottom: 14px; padding-left: 4px; }
+
+  /* SONG GRID */
+  .song-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .song-card { border-radius: 20px; overflow: hidden; border: 3px solid transparent; cursor: pointer; background: #fff; box-shadow: 0 3px 12px rgba(0,0,0,0.08); position: relative; transition: transform 0.15s ease; }
+  .song-card:active { transform: scale(0.94); }
+  .thumb { width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 54px; }
+  .thumb-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+  .new-badge { position: absolute; top: 8px; left: 8px; background: #E83B3B; color: #fff; font-size: 11px; font-weight: 900; padding: 3px 8px; border-radius: 8px; }
+  .song-tag { display: block; width: fit-content; margin: 6px auto 4px; font-size: 12px; padding: 3px 12px; border-radius: 20px; font-weight: 800; color: #fff; }
+  .song-title { padding: 4px 10px 14px; font-size: 14px; font-weight: 800; text-align: center; line-height: 1.3; }
+
+  /* YOUTUBE RESULTS */
+  .yt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+  .yt-card { border-radius: 16px; overflow: hidden; background: #fff; box-shadow: 0 3px 12px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.15s; border: 3px solid #FFD700; }
+  .yt-card:active { transform: scale(0.95); }
+  .yt-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #eee; }
+  .yt-info { padding: 10px 12px 12px; }
+  .yt-title { font-size: 14px; font-weight: 800; color: #333; line-height: 1.3; margin-bottom: 4px; }
+  .yt-channel { font-size: 12px; color: #FF6B6B; font-weight: 700; }
+
+  /* LOADING */
+  .loading { text-align: center; padding: 50px 20px; font-size: 20px; font-weight: 800; color: #FFD700; grid-column: 1/-1; }
+  .spinner { display: inline-block; width: 32px; height: 32px; border: 4px solid #FFD700; border-top-color: #FF6B6B; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 10px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .no-results { text-align: center; padding: 60px 20px; font-size: 22px; font-weight: 800; color: #ccc; grid-column: 1/-1; }
+
+  /* DETAIL OVERLAY */
+  .detail-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; padding: 12px; }
+  .detail-overlay.open { display: flex; }
+  .detail-panel { background: #fff; border-radius: 24px; width: 100%; max-width: 960px; max-height: 94vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.35); }
+  .detail-header { padding: 18px 20px 14px; border-radius: 24px 24px 0 0; display: flex; align-items: center; gap: 14px; }
+  .detail-emoji { font-size: 36px; }
+  .detail-title { font-size: 20px; font-weight: 900; color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.2); flex: 1; line-height: 1.2; }
+  .close-btn { width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.3); border: 2px solid rgba(255,255,255,0.5); color: #fff; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 900; flex-shrink: 0; }
+  .detail-body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+  .video-wrapper { width: 100%; aspect-ratio: 16/9; border-radius: 16px; overflow: hidden; background: #1a1a2e; }
+  .video-wrapper iframe { width: 100%; height: 100%; border: none; }
+
+  /* LYRICS */
+  .lyrics-box { background: #FFF8F0; border-radius: 16px; padding: 20px; border: 3px solid #FFD03A; }
+  .lyrics-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 3px dashed #FFD03A; }
+  .lyrics-song-title { font-size: 20px; font-weight: 900; color: #FF6B6B; }
+  .lyrics-content { font-size: 22px; font-weight: 700; color: #333; line-height: 2.2; }
+  .verse-label { display: block; font-size: 15px; font-weight: 800; color: #bbb; font-style: italic; margin: 14px 0 4px; }
+  .lyrics-note { font-size: 14px; color: #aaa; font-weight: 600; font-style: italic; margin-top: 16px; text-align: center; }
+
+  .detail-panel::-webkit-scrollbar { width: 6px; }
+  .detail-panel::-webkit-scrollbar-thumb { background: #FFD03A; border-radius: 10px; }
+
+  @media (min-width: 600px) {
+    .song-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    .yt-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+    .detail-body { flex-direction: row; align-items: flex-start; }
+    .video-wrapper { flex: 1.4; }
+    .lyrics-box { flex: 1; max-height: 70vh; overflow-y: auto; }
+  }
+  @media (min-width: 900px) {
+    .song-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+    .header-title { font-size: 30px; }
+    .lyrics-content { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo-circle">🎵</div>
+    <div>
+      <div class="header-title">SUPER SIMPLE SONGS</div>
+      <div class="header-sub">Kids songs &amp; nursery rhymes with lyrics 🌈</div>
+    </div>
+  </div>
+  <div class="search-row">
+    <input class="search-input" id="searchInput" placeholder="🔍 Search any song..." />
+    <select class="filter-select" id="themeFilter">
+      <option value="">🎨 All Themes</option>
+      <option>Animals</option><option>Bedtime</option><option>Body</option>
+      <option>Colors</option><option>Fun</option><option>Alphabet</option>
+      <option>Numbers</option><option>Transport</option><option>Ocean</option><option>Seasons</option>
+    </select>
+    <button class="search-btn" id="searchBtn">🔍 Search YouTube</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" id="tabFavorites" onclick="switchTab('favorites')">⭐ Favourites (20)</div>
+  <div class="tab inactive" id="tabYoutube" onclick="switchTab('youtube')">▶ YouTube Results</div>
+</div>
+
+<div class="main">
+  <div class="results-count" id="resultsCount"></div>
+  <div id="favSection">
+    <div class="song-grid" id="songGrid"></div>
+  </div>
+  <div id="ytSection" style="display:none;">
+    <div class="yt-grid" id="ytGrid"></div>
+  </div>
+</div>
+
+<!-- DETAIL OVERLAY -->
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-panel">
+    <div class="detail-header" id="detailHeader">
+      <div class="detail-emoji" id="detailEmoji"></div>
+      <div class="detail-title" id="detailTitle"></div>
+      <div class="close-btn" onclick="closeDetail()">✕</div>
+    </div>
+    <div class="detail-body">
+      <div class="video-wrapper"><iframe id="videoFrame" allowfullscreen allow="autoplay; encrypted-media"></iframe></div>
+      <div class="lyrics-box">
+        <div class="lyrics-header">
+          <span style="font-size:26px;">🎵</span>
+          <div class="lyrics-song-title" id="lyricsSongTitle">Lyrics</div>
+        </div>
+        <div class="lyrics-content" id="lyricsContent"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── HARDCODED SONGS ──────────────────────────────────────────────
+const SONGS = [
+  { id:1, title:"BINGO", emoji:"🐶", theme:"Animals", playlist:"Nursery Rhymes", youtubeId:"dGpN2REuZMI", isNew:true, color:"#FF6B6B", bg:"#FFF0F0", lyrics:`[Verse 1]\nThere was a farmer had a dog,\nAnd Bingo was his name-o!\nB-I-N-G-O! B-I-N-G-O! B-I-N-G-O!\nAnd Bingo was his name-o!\n\n[Verse 2]\nThere was a farmer had a dog,\nAnd Bingo was his name-o!\n(clap)-I-N-G-O! (clap)-I-N-G-O! (clap)-I-N-G-O!\nAnd Bingo was his name-o!\n\n[Verse 3]\n(clap)(clap)-N-G-O! x3\nAnd Bingo was his name-o!\n\n[Verse 4]\n(clap)(clap)(clap)-G-O! x3\nAnd Bingo was his name-o!\n\n[Verse 5]\n(clap)(clap)(clap)(clap)-O! x3\nAnd Bingo was his name-o!\n\n[Verse 6]\n(clap)(clap)(clap)(clap)(clap)! x3\nAnd Bingo was his name-o! 🎉` },
+  { id:2, title:"Twinkle Twinkle Little Star", emoji:"⭐", theme:"Bedtime", playlist:"Nursery Rhymes", youtubeId:"yCjJyiqpAuU", isNew:false, color:"#C77DFF", bg:"#F8F0FF", lyrics:`[Verse 1]\nTwinkle, twinkle, little star,\nHow I wonder what you are!\nUp above the world so high,\nLike a diamond in the sky.\nTwinkle, twinkle, little star,\nHow I wonder what you are! ⭐\n\n[Verse 2]\nWhen the blazing sun is gone,\nWhen he nothing shines upon,\nThen you show your little light,\nTwinkle, twinkle, through the night.\nTwinkle, twinkle, little star,\nHow I wonder what you are! 🌙` },
+  { id:3, title:"Five Little Ducks", emoji:"🦆", theme:"Animals", playlist:"Nursery Rhymes", youtubeId:"oIzZhcoFfAo", isNew:false, color:"#FF6B9D", bg:"#FFF0F6", lyrics:`[Verse 1]\nFive little ducks went out one day,\nOver the hills and far away.\nMother duck said, "Quack quack quack quack!"\nBut only four little ducks came back.\n\n[Verse 2]\nFour little ducks went out one day,\nOver the hills and far away.\nMother duck said, "Quack quack quack quack!"\nBut only three little ducks came back.\n\n[Verse 3]\nThree little ducks... two came back.\n\n[Verse 4]\nTwo little ducks... one came back.\n\n[Verse 5]\nOne little duck... none came back. 😢\n\n[Verse 6]\nSad mother duck went out one day,\nThe sad mother duck said, "Quack quack quack!"\nAnd all of the five little ducks came back! 🎉` },
+  { id:4, title:"Baby Shark", emoji:"🦈", theme:"Ocean", playlist:"Baby Songs", youtubeId:"XqZsoesa55w", isNew:false, color:"#4D96FF", bg:"#EFF5FF", lyrics:`[Verse 1]\nBaby shark, doo doo doo doo doo doo!\nBaby shark, doo doo doo doo doo doo!\nBaby shark! 🦈\n\n[Verse 2]\nMommy shark, doo doo doo doo doo doo!\nMommy shark!\n\n[Verse 3]\nDaddy shark, doo doo doo doo doo doo!\nDaddy shark!\n\n[Verse 4]\nGrandma shark, doo doo doo doo doo doo!\nGrandma shark!\n\n[Verse 5]\nGrandpa shark, doo doo doo doo doo doo!\nGrandpa shark!\n\n[Outro]\nIt's the end, doo doo doo doo doo doo!\nIt's the end! 🎉` },
+  { id:5, title:"Head Shoulders Knees & Toes", emoji:"🙌", theme:"Body", playlist:"Learning", youtubeId:"h4eueDYPTIg", isNew:false, color:"#FF9F43", bg:"#FFF5E8", lyrics:`[Verse 1]\nHead, shoulders, knees and toes,\nKnees and toes!\nHead, shoulders, knees and toes,\nKnees and toes!\nAnd eyes and ears and mouth and nose!\nHead, shoulders, knees and toes,\nKnees and toes! 🎉` },
+  { id:6, title:"Old MacDonald Had A Farm", emoji:"🐄", theme:"Animals", playlist:"Nursery Rhymes", youtubeId:"5HbQV_KQgXg", isNew:false, color:"#6BCB77", bg:"#F0FFF2", lyrics:`[Verse 1]\nOld MacDonald had a farm, E-I-E-I-O!\nAnd on his farm he had a cow, E-I-E-I-O!\nWith a moo moo here, and a moo moo there,\nHere a moo, there a moo, everywhere a moo moo!\nOld MacDonald had a farm, E-I-E-I-O!\n\n[Verse 2 - Pig 🐷]\nWith an oink oink here, oink oink there...\nOld MacDonald had a farm, E-I-E-I-O!\n\n[Verse 3 - Duck 🦆]\nWith a quack quack here, quack quack there...\nOld MacDonald had a farm, E-I-E-I-O!` },
+  { id:7, title:"The Wheels On The Bus", emoji:"🚌", theme:"Transport", playlist:"Nursery Rhymes", youtubeId:"e_04ZrNroTo", isNew:false, color:"#FFD03A", bg:"#FFFBE8", lyrics:`[Verse 1]\nThe wheels on the bus go round and round,\nRound and round, round and round!\nThe wheels on the bus go round and round,\nAll through the town!\n\n[Verse 2]\nThe wipers on the bus go swish swish swish...\n\n[Verse 3]\nThe horn on the bus goes beep beep beep...\n\n[Verse 4]\nThe babies on the bus go waa waa waa...\n\n[Verse 5]\nThe mommies on the bus go shh shh shh...\nAll through the town! 🚌` },
+  { id:8, title:"Pat-A-Cake", emoji:"🎂", theme:"Fun", playlist:"Nursery Rhymes", youtubeId:"0ngsQIhGHgY", isNew:true, color:"#FF6B6B", bg:"#FFF0F0", lyrics:`[Verse 1]\nPat-a-cake, pat-a-cake, baker's man!\nBake me a cake as fast as you can!\nPat it and prick it and mark it with B,\nPut it in the oven for baby and me! 🎂` },
+  { id:9, title:"I'm A Baby Fish", emoji:"🐟", theme:"Ocean", playlist:"Baby Songs", youtubeId:"vhWuTTKZ6KY", isNew:true, color:"#26C6DA", bg:"#E0FEFF", lyrics:`[Verse 1]\nI'm a baby fish, swimming in the sea,\nSplashing in the water, happy as can be!\nSwish swish swish, wiggle wiggle wiggle,\nSwimming all around makes me want to giggle! 🐟\n\n[Chorus]\nSwim swim swim, little fishy swim!\nSplash splash splash, in the deep blue sea,\nI'm a happy little fish, swimming wild and free! 🌊` },
+  { id:10, title:"ABC Song", emoji:"🔤", theme:"Alphabet", playlist:"Learning", youtubeId:"36IBDpTRVNE", isNew:false, color:"#6BCB77", bg:"#F0FFF2", lyrics:`[Verse 1]\nA B C D E F G,\nH I J K L M N O P,\nQ R S, T U V,\nW X, Y and Z!\n\nNow I know my ABCs,\nNext time won't you sing with me? 🎉` },
+  { id:11, title:"One Two Three Four Five", emoji:"🔢", theme:"Numbers", playlist:"Learning", youtubeId:"VIZUDmHPZeo", isNew:false, color:"#C77DFF", bg:"#F8F0FF", lyrics:`[Verse 1]\nOne, two, three, four, five,\nOnce I caught a fish alive! 🐟\nSix, seven, eight, nine, ten,\nThen I let it go again!\n\nWhy did you let it go?\nBecause it bit my finger so!\nWhich finger did it bite?\nThis little finger on the right! 👆` },
+  { id:12, title:"If You're Happy And You Know It", emoji:"😄", theme:"Fun", playlist:"Learning", youtubeId:"l4WNrvVjiTw", isNew:false, color:"#FFD03A", bg:"#FFFBE8", lyrics:`[Verse 1]\nIf you're happy and you know it, clap your hands! 👏\nIf you're happy and you know it, clap your hands! 👏\nIf you're happy and you know it, then your face will surely show it!\nIf you're happy and you know it, clap your hands! 👏\n\n[Verse 2]\nStomp your feet! 🦶\n\n[Verse 3]\nShout hooray! 🎉` },
+  { id:13, title:"Mary Had A Little Lamb", emoji:"🐑", theme:"Animals", playlist:"Nursery Rhymes", youtubeId:"vhsTIHBnSYA", isNew:false, color:"#FF6B9D", bg:"#FFF0F6", lyrics:`[Verse 1]\nMary had a little lamb,\nLittle lamb, little lamb!\nMary had a little lamb,\nIts fleece was white as snow! 🐑\n\n[Verse 2]\nAnd everywhere that Mary went,\nThe lamb was sure to go!\n\n[Verse 3]\nIt followed her to school one day,\nWhich was against the rules!\n\n[Verse 4]\nIt made the children laugh and play,\nTo see a lamb at school! 🎒` },
+  { id:14, title:"Row Row Row Your Boat", emoji:"🚣", theme:"Fun", playlist:"Nursery Rhymes", youtubeId:"e-7GgMHMvzs", isNew:false, color:"#4D96FF", bg:"#EFF5FF", lyrics:`[Verse 1]\nRow, row, row your boat,\nGently down the stream!\nMerrily, merrily, merrily, merrily,\nLife is but a dream! 🚣\n\n[Verse 2]\nIf you see a crocodile,\nDon't forget to scream! 🐊\n\n[Verse 3]\nIf you see a lion there,\nDon't forget to roar! 🦁` },
+  { id:15, title:"Rain Rain Go Away", emoji:"🌧️", theme:"Seasons", playlist:"Nursery Rhymes", youtubeId:"hizAMTnCbfc", isNew:false, color:"#26C6DA", bg:"#E0FEFF", lyrics:`[Verse 1]\nRain, rain, go away,\nCome again another day!\nLittle children want to play,\nRain, rain, go away! ☀️\n\n[Verse 2]\nSun, sun, come out today,\nAll the children want to play!\nRain, rain, go away,\nCome again another day! 🌈` },
+  { id:16, title:"Ten In The Bed", emoji:"🛏️", theme:"Bedtime", playlist:"Baby Songs", youtubeId:"yL2NmRGbNhc", isNew:false, color:"#FF6B6B", bg:"#FFF0F0", lyrics:`[Verse 1]\nThere were ten in the bed,\nAnd the little one said, "Roll over! Roll over!"\nSo they all rolled over and one fell out!\n\n[Continuing...]\nNine... Eight... Seven... Six... Five... Four... Three... Two...\n\n[Final]\nThere was one in the bed,\nAnd the little one said, "Good night! 😴"\nSweet dreams! 🌙⭐` },
+  { id:17, title:"The Color Song", emoji:"🌈", theme:"Colors", playlist:"Learning", youtubeId:"sQpBpjGKp24", isNew:false, color:"#FF9F43", bg:"#FFF5E8", lyrics:`[Verse 1]\nRed is an apple, red is a rose 🌹\nRed, red, red, I see something red!\n\n[Verse 2]\nYellow is a lemon, yellow is the sun ☀️\nYellow, yellow, yellow, I see something yellow!\n\n[Verse 3]\nBlue is the ocean, blue is the sky 🌊\nBlue, blue, blue, I see something blue!\n\n[Verse 4]\nGreen is the grass, green is a tree 🌳\nGreen, green, green, I see something green!\n\n[Chorus]\nRed, yellow, blue and green,\nColors, colors everywhere! 🌈` },
+  { id:18, title:"Hickory Dickory Dock", emoji:"🐭", theme:"Animals", playlist:"Nursery Rhymes", youtubeId:"DFQdoUW97Us", isNew:false, color:"#C77DFF", bg:"#F8F0FF", lyrics:`[Verse 1]\nHickory, dickory, dock! 🕐\nThe mouse ran up the clock!\nThe clock struck one, the mouse ran down!\nHickory, dickory, dock!\n\n[Verse 2]\nThe clock struck two, the mouse said "BOO!" 🕑\n\n[Verse 3]\nThe clock struck three, the mouse went "Whee!" 🕒\n\n[Verse 4]\nThe clock struck four, the mouse said "More!" 🕓` },
+  { id:19, title:"Itsy Bitsy Spider", emoji:"🕷️", theme:"Animals", playlist:"Nursery Rhymes", youtubeId:"l9szBGzD-NI", isNew:false, color:"#FF9F43", bg:"#FFF5E8", lyrics:`[Verse 1]\nThe itsy bitsy spider climbed up the water spout! 🕷️\nDown came the rain and washed the spider out! 🌧️\nOut came the sun and dried up all the rain! ☀️\nAnd the itsy bitsy spider climbed up the spout again!\n\n[Verse 2 - Big spider!]\nThe great big spider climbed up the water spout!\nDown came the rain and washed the spider out!\nOut came the sun and dried up all the rain!\nAnd the great big spider climbed up the spout again! 🎉` },
+  { id:20, title:"Johny Johny Yes Papa", emoji:"👦", theme:"Fun", playlist:"Baby Songs", youtubeId:"VIixs8oDmqM", isNew:false, color:"#6BCB77", bg:"#F0FFF2", lyrics:`[Verse 1]\nJohny Johny, yes papa?\nEating sugar? No papa!\nTelling lies? No papa!\nOpen your mouth! Ha ha ha! 😄\n\n[Verse 2]\nBaby baby, yes papa?\nEating sugar? No papa!\nOpen your mouth! Ha ha ha! 🍬` }
+];
+
+const COLORS = ["#FF6B6B","#FF9F43","#FFD03A","#6BCB77","#4D96FF","#C77DFF","#FF6B9D","#26C6DA"];
+const BGS    = ["#FFF0F0","#FFF5E8","#FFFBE8","#F0FFF2","#EFF5FF","#F8F0FF","#FFF0F6","#E0FEFF"];
+
+let currentTab = 'favorites';
+
+// ── FILTER FAVOURITES ────────────────────────────────────────────
+function filterSongs() {
+  const q = document.getElementById("searchInput").value.toLowerCase().trim();
+  const theme = document.getElementById("themeFilter").value;
+  const filtered = SONGS.filter(s =>
+    (!q || s.title.toLowerCase().includes(q)) &&
+    (!theme || s.theme === theme)
+  );
+  renderGrid(filtered);
+  if (currentTab !== 'favorites') switchTab('favorites');
+}
+
+function renderGrid(songs) {
+  const grid = document.getElementById("songGrid");
+  document.getElementById("resultsCount").textContent = `Showing ${songs.length} of ${SONGS.length} favourite songs ⭐`;
+  if (!songs.length) {
+    grid.innerHTML = `<div class="no-results">😢 No songs found! Try YouTube search 👆</div>`;
+    return;
+  }
+  grid.innerHTML = songs.map(s => `
+    <div class="song-card" style="border-color:${s.color};background:${s.bg}" onclick="openSong('${s.youtubeId}','${s.title.replace(/'/g,"\\'")}','${s.emoji}','${s.color}',${s.id})">
+      <div class="thumb" style="background:${s.bg}">${s.emoji}</div>
+      ${s.isNew ? '<span class="new-badge">NEW!</span>' : ''}
+      <span class="song-tag" style="background:${s.color}">${s.theme}</span>
+      <div class="song-title" style="color:${s.color}">${s.title}</div>
+    </div>
+  `).join('');
+}
+
+// ── YOUTUBE SEARCH ───────────────────────────────────────────────
+async function searchYouTube() {
+  const q = document.getElementById("searchInput").value.trim();
+  if (!q) { alert("Please type a song name first! 🎵"); return; }
+
+  switchTab('youtube');
+  const grid = document.getElementById("ytGrid");
+  document.getElementById("resultsCount").textContent = `Searching YouTube for "${q}"...`;
+  grid.innerHTML = `<div class="loading"><span class="spinner"></span>Searching YouTube...</div>`;
+
+  // Use YouTube RSS/search redirect — opens in app using noembed for thumbnails
+  const query = encodeURIComponent("Super Simple Songs " + q);
+  const url = `https://www.youtube.com/results?search_query=${query}`;
+
+  // Use noembed-compatible approach: build cards linking to YouTube search
+  // We use invidious public API (no key needed) to search
+  const apiUrl = `https://inv.tux.pizza/api/v1/search?q=${query}&type=video&page=1`;
+
+  try {
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+    if (!data || !data.length) throw new Error("No results");
+    renderYTResults(data.slice(0, 12), q);
+  } catch(e) {
+    // Fallback: show YouTube search button
+    document.getElementById("resultsCount").textContent = `Search results for "${q}" on YouTube`;
+    grid.innerHTML = `
+      <div style="grid-column:1/-1; text-align:center; padding: 30px 20px;">
+        <div style="font-size:48px; margin-bottom:16px;">▶️</div>
+        <div style="font-size:20px; font-weight:800; color:#333; margin-bottom:10px;">Open YouTube to watch!</div>
+        <div style="font-size:15px; color:#aaa; margin-bottom:20px;">Tap below to search Super Simple Songs on YouTube</div>
+        <a href="https://www.youtube.com/results?search_query=${query}" target="_blank"
+           style="display:inline-block; background:#FF0000; color:#fff; font-size:18px; font-weight:900; padding:14px 28px; border-radius:14px; text-decoration:none; font-family:Nunito,sans-serif;">
+          🔴 Search on YouTube
+        </a>
+      </div>`;
+  }
+}
+
+function renderYTResults(videos, query) {
+  const grid = document.getElementById("ytGrid");
+  document.getElementById("resultsCount").textContent = `YouTube results for "${query}" 🎵`;
+  grid.innerHTML = videos.map((v, i) => {
+    const vid = v.videoId;
+    const title = v.title || "Super Simple Song";
+    const thumb = v.videoThumbnails?.[0]?.url || `https://img.youtube.com/vi/${vid}/mqdefault.jpg`;
+    const color = COLORS[i % COLORS.length];
+    return `
+      <div class="yt-card" style="border-color:${color}" onclick="openSong('${vid}','${title.replace(/'/g,"\\'")}','🎵','${color}',null)">
+        <img class="yt-thumb" src="https://img.youtube.com/vi/${vid}/mqdefault.jpg" onerror="this.src='https://img.youtube.com/vi/${vid}/default.jpg'" />
+        <div class="yt-info">
+          <div class="yt-title">${title}</div>
+          <div class="yt-channel" style="color:${color}">▶ Super Simple Songs</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── OPEN SONG ────────────────────────────────────────────────────
+function openSong(youtubeId, title, emoji, color, songId) {
+  document.getElementById("detailEmoji").textContent = emoji;
+  document.getElementById("detailTitle").textContent = title;
+  document.getElementById("lyricsSongTitle").textContent = title;
+  document.getElementById("detailHeader").style.background = `linear-gradient(135deg, ${color}, ${color}bb)`;
+  document.getElementById("videoFrame").src = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`;
+
+  // Show lyrics if hardcoded song
+  const song = songId ? SONGS.find(s => s.id === songId) : null;
+  if (song && song.lyrics) {
+    const html = song.lyrics.split('\n').map(line => {
+      if (line.match(/^\[.+\]$/)) return `<span class="verse-label">${line}</span>`;
+      if (!line.trim()) return '<br>';
+      return line + '<br>';
+    }).join('');
+    document.getElementById("lyricsContent").innerHTML = html;
+  } else {
+    document.getElementById("lyricsContent").innerHTML = `
+      <div style="text-align:center; padding:20px;">
+        <div style="font-size:40px; margin-bottom:12px;">🎵</div>
+        <div style="font-size:20px; font-weight:800; color:#aaa;">Watch the video to sing along!</div>
+        <div class="lyrics-note">This song is from YouTube search.<br>Add it to favourites to see lyrics!</div>
+      </div>`;
+  }
+
+  document.getElementById("detailOverlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeDetail() {
+  document.getElementById("detailOverlay").classList.remove("open");
+  document.getElementById("videoFrame").src = "";
+  document.body.style.overflow = "";
+}
+
+// ── TABS ─────────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById("favSection").style.display = tab === 'favorites' ? '' : 'none';
+  document.getElementById("ytSection").style.display = tab === 'youtube' ? '' : 'none';
+  document.getElementById("tabFavorites").className = `tab ${tab === 'favorites' ? 'active' : 'inactive'}`;
+  document.getElementById("tabYoutube").className = `tab ${tab === 'youtube' ? 'active' : 'inactive'}`;
+  if (tab === 'favorites') {
+    document.getElementById("resultsCount").textContent = `Showing ${SONGS.length} of ${SONGS.length} favourite songs ⭐`;
+  }
+}
+
+// ── CLOSE ON BACKDROP ────────────────────────────────────────────
+document.getElementById("detailOverlay").addEventListener("click", function(e) {
+  if (e.target === this) closeDetail();
+});
+
+// ── EVENT LISTENERS ──────────────────────────────────────────────
+document.getElementById("searchInput").addEventListener("input", filterSongs);
+document.getElementById("searchInput").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") searchYouTube();
+});
+document.getElementById("themeFilter").addEventListener("change", filterSongs);
+document.getElementById("searchBtn").addEventListener("click", searchYouTube);
+
+// ── INIT ─────────────────────────────────────────────────────────
+renderGrid(SONGS);
+</script>
+</body>
 </html>
