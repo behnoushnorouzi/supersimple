@@ -252,7 +252,9 @@ async function fetchVideos(query, order, pageToken, append) {
   }
 
   try {
-    const q = query ? encodeURIComponent(query) : "";
+    // Always include "super simple songs" in query to ensure correct channel results
+    const rawQ = query ? `super simple songs ${query}` : "";
+    const q = rawQ ? encodeURIComponent(rawQ) : "";
     const qParam = q ? `&q=${q}` : "";
     const pageParam = pageToken ? `&pageToken=${pageToken}` : "";
     const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${SSS_CHANNEL_ID}&type=video&maxResults=24&order=${order}${qParam}&key=${YT_API_KEY}${pageParam}`;
