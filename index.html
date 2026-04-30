@@ -6,99 +6,43 @@
 <title>Super Simple Songs 🎵 Kids Safe Player</title>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-:root {
-  --yellow: #FFD700;
-  --yellow-dark: #F5A800;
-  --red: #FF5A5A;
-  --blue: #4D96FF;
-  --bg: #FFFDF5;
-  --card-bg: #FFFFFF;
-  --text: #1A1A2E;
-  --radius: 24px;
-}
+:root { --yellow: #FFD700; --yellow-dark: #F5A800; --red: #FF5A5A; --bg: #FFFDF5; --card-bg: #FFFFFF; --text: #1A1A2E; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); }
 
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-/* HEADER */
-.site-header { background: var(--yellow); border-bottom: 4px solid var(--yellow-dark); position: sticky; top: 0; z-index: 100; padding: 15px; }
-.header-inner { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
-.brand { display: flex; align-items: center; gap: 10px; font-family: 'Baloo 2', cursive; font-size: 24px; font-weight: 800; color: #7A3800; }
-
+/* HEADER & SEARCH */
+.site-header { background: var(--yellow); border-bottom: 4px solid var(--yellow-dark); padding: 15px; position: sticky; top: 0; z-index: 100; }
+.header-inner { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+.brand { font-family: 'Baloo 2', cursive; font-size: 24px; font-weight: 800; color: #7A3800; }
 .search-bar { display: flex; gap: 10px; }
-.search-input { flex: 1; padding: 12px 20px; border-radius: 15px; border: 3px solid #fff; font-size: 16px; font-weight: 700; outline: none; }
-.search-btn { padding: 12px 25px; border-radius: 15px; border: none; background: var(--red); color: #fff; font-weight: 900; cursor: pointer; box-shadow: 0 4px 0 #c0392b; }
+.search-input { flex: 1; padding: 12px; border-radius: 15px; border: 3px solid #fff; font-size: 16px; font-weight: 700; }
+.search-btn { padding: 12px 25px; border-radius: 15px; border: none; background: var(--red); color: #fff; font-weight: 900; cursor: pointer; }
 
 /* GRID */
 .page { max-width: 1200px; margin: 0 auto; padding: 20px; }
 .song-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-.song-card { background: var(--card-bg); border-radius: var(--radius); overflow: hidden; border: 3px solid #eee; cursor: pointer; transition: transform 0.2s; }
+.song-card { background: var(--card-bg); border-radius: 24px; overflow: hidden; border: 3px solid #eee; cursor: pointer; transition: 0.2s; }
 .song-card:hover { transform: scale(1.03); border-color: var(--yellow); }
-.card-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
-.card-title { padding: 12px; font-weight: 800; font-size: 15px; line-height: 1.3; height: 55px; overflow: hidden; }
+.card-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+.card-title { padding: 12px; font-weight: 800; font-size: 15px; height: 55px; overflow: hidden; }
 
-/* NEW DIALOG (MODAL) */
+/* MODAL / DIALOG */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; padding: 20px; align-items: center; justify-content: center; }
 .modal-overlay.open { display: flex; }
+.modal-container { background: #fff; width: 95%; max-width: 1300px; height: 85vh; border-radius: 30px; overflow: hidden; display: flex; position: relative; }
 
-.modal-container { 
-    background: #fff; 
-    width: 95%; 
-    max-width: 1300px; 
-    height: 85vh; 
-    border-radius: 30px; 
-    overflow: hidden; 
-    display: flex; 
-    flex-direction: row; /* Video left, Lyrics right */
-    position: relative;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-}
-
-.video-section { flex: 1.5; background: #000; position: relative; }
+.video-section { flex: 1.5; background: #000; }
 .video-section iframe { width: 100%; height: 100%; border: none; }
 
-.lyrics-section { 
-    flex: 1; 
-    background: var(--bg); 
-    padding: 40px; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    text-align: center;
-    border-left: 6px solid var(--yellow);
-    overflow-y: auto;
-}
-
+.lyrics-section { flex: 1; background: var(--bg); padding: 40px; border-left: 6px solid var(--yellow); overflow-y: auto; text-align: center; }
 .lyrics-title { font-family: 'Baloo 2', cursive; font-size: 28px; color: var(--red); margin-bottom: 20px; }
-.lyrics-content { 
-    font-size: 32px; /* BIG FONT FOR CHILD */
-    font-weight: 800; 
-    line-height: 1.5; 
-    color: #333;
-    white-space: pre-line;
-}
+.lyrics-content { font-size: 32px; font-weight: 800; line-height: 1.6; color: #333; white-space: pre-line; }
 
-.close-btn { 
-    position: absolute; 
-    top: 15px; 
-    right: 15px; 
-    width: 50px; 
-    height: 50px; 
-    background: var(--red); 
-    color: #fff; 
-    border: none; 
-    border-radius: 50%; 
-    font-size: 24px; 
-    font-weight: bold; 
-    cursor: pointer; 
-    z-index: 1010;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
+.close-btn { position: absolute; top: 15px; right: 15px; width: 50px; height: 50px; background: var(--red); color: #fff; border: none; border-radius: 50%; font-size: 24px; cursor: pointer; z-index: 1010; }
 
 @media (max-width: 900px) {
-    .modal-container { flex-direction: column; height: 95vh; }
-    .lyrics-section { border-left: none; border-top: 6px solid var(--yellow); padding: 20px; }
-    .lyrics-content { font-size: 24px; }
+    .modal-container { flex-direction: column; }
+    .lyrics-section { border-left: none; border-top: 6px solid var(--yellow); }
 }
 </style>
 </head>
@@ -114,25 +58,15 @@ body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--te
   </div>
 </header>
 
-<div class="page">
-  <div class="song-grid" id="songGrid"></div>
-</div>
+<div class="page"><div class="song-grid" id="songGrid"></div></div>
 
-<!-- Video + Lyrics Dialog -->
 <div class="modal-overlay" id="modalOverlay">
     <div class="modal-container">
         <button class="close-btn" onclick="closeModal()">✕</button>
-        
-        <div class="video-section">
-            <iframe id="videoFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-        
+        <div class="video-section"><iframe id="videoFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>
         <div class="lyrics-section">
             <div class="lyrics-title">🎤 Sing Along!</div>
-            <div class="lyrics-content" id="lyricsText">
-                Listen to the song and sing the words! 
-                🌈 ✨
-            </div>
+            <div class="lyrics-content" id="lyricsText">Loading lyrics...</div>
         </div>
     </div>
 </div>
@@ -144,46 +78,55 @@ const CHANNEL_ID = "UCLsooMJoIpl_7ux2jvdPB-Q";
 async function fetchVideos(query = "") {
     const grid = document.getElementById("songGrid");
     grid.innerHTML = "<p>Loading...</p>";
-    
     let cleanQuery = query.toLowerCase().replace(/super simple songs/g, "").trim();
     let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&type=video&maxResults=20&key=${API_KEY}&order=${query ? 'relevance' : 'date'}`;
-    
     if (cleanQuery) url += `&q=${encodeURIComponent(cleanQuery)}`;
-
     try {
         const res = await fetch(url);
         const data = await res.json();
         grid.innerHTML = "";
-        
         data.items.forEach(item => {
             const vid = item.id.videoId;
             const title = item.snippet.title;
             const thumb = item.snippet.thumbnails.high.url;
-
             const card = document.createElement("div");
             card.className = "song-card";
-            card.innerHTML = `
-                <img class="card-thumb" src="${thumb}">
-                <div class="card-title">${title}</div>
-            `;
+            card.innerHTML = `<img class="card-thumb" src="${thumb}"><div class="card-title">${title}</div>`;
             card.onclick = () => openModal(vid, title);
             grid.appendChild(card);
         });
     } catch (e) { grid.innerHTML = "Error loading songs."; }
 }
 
+async function fetchLyrics(videoId) {
+    const lyricsDisplay = document.getElementById("lyricsText");
+    lyricsDisplay.innerText = "Finding the words...";
+    try {
+        // Using a public transcript API proxy (Timed Text)
+        const res = await fetch(`https://subtitles-api.vercel.app/api/transcript?v=${videoId}`);
+        const data = await res.json();
+        
+        if (data.transcript && data.transcript.length > 0) {
+            // Clean up the transcript text for the child
+            const fullText = data.transcript
+                .map(line => line.text)
+                .join('\n')
+                .replace(/\[.*?\]/g, ""); // Remove music cues like [Music]
+            lyricsDisplay.innerText = fullText;
+        } else {
+            lyricsDisplay.innerText = "Sing along with the video! 🌈";
+        }
+    } catch (e) {
+        lyricsDisplay.innerText = "Follow the words in the video! ✨";
+    }
+}
+
 function openModal(id, title) {
     const frame = document.getElementById("videoFrame");
-    const lyricsText = document.getElementById("lyricsText");
-    
-    // Set Video
     frame.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
-    
-    // Custom Message for Lyrics (Since YouTube API doesn't provide lyrics directly)
-    lyricsText.innerHTML = `Great job!<br><br>Can you sing along to<br>"${title}"?<br><br>Keep watching the video to follow the words! 🌟`;
-    
     document.getElementById("modalOverlay").classList.add("open");
     document.body.style.overflow = "hidden";
+    fetchLyrics(id);
 }
 
 function closeModal() {
@@ -192,15 +135,8 @@ function closeModal() {
     document.body.style.overflow = "auto";
 }
 
-document.getElementById("searchBtn").onclick = () => {
-    fetchVideos(document.getElementById("searchInput").value);
-};
-
-document.getElementById("searchInput").onkeydown = (e) => {
-    if (e.key === "Enter") fetchVideos(e.target.value);
-};
-
-// Start
+document.getElementById("searchBtn").onclick = () => fetchVideos(document.getElementById("searchInput").value);
+document.getElementById("searchInput").onkeydown = (e) => { if (e.key === "Enter") fetchVideos(e.target.value); };
 fetchVideos();
 </script>
 </body>
